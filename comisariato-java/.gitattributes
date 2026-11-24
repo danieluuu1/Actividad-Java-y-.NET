@@ -1,0 +1,9 @@
+* text=auto
+*.java text eol=lf
+*.yml text eol=lf
+*.xml text eol=lf
+*.md text eol=lf
+java-api/mvnw text eol=lf
+java-api/mvnw.cmd text eol=crlf
+database/01_base_original.sql -text
+*.pdf binary

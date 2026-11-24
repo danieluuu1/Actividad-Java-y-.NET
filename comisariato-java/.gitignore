@@ -1,0 +1,8 @@
+**/target/
+dist/
+.idea/
+*.iml
+.vscode/
+.env
+*.log
+java-api/src/main/resources/application-local.yml

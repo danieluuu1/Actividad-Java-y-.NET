@@ -1,0 +1,414 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Servidor local del taller"
+    }
+  ],
+  "paths": {
+    "/api/ventas": {
+      "post": {
+        "tags": [
+          "venta-controller"
+        ],
+        "summary": "Registrar venta; el SP calcula precios, subtotal, IVA y total",
+        "operationId": "registrar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VentaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Venta creada",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request invalido",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente, empleado o producto inexistente",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Factura duplicada o deadlock agotado",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Stock insuficiente u otra regla de negocio",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ventas/{ventaId}/anular": {
+      "post": {
+        "tags": [
+          "venta-controller"
+        ],
+        "summary": "Anular venta y restituir stock una sola vez",
+        "operationId": "anular",
+        "parameters": [
+          {
+            "name": "ventaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Venta anulada",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Venta inexistente",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Venta ya anulada o estado incompatible",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/productos/{productoId}/movimientos": {
+      "get": {
+        "tags": [
+          "producto-controller"
+        ],
+        "summary": "Movimientos por producto; 404 si no existe, 200 [] si no tiene movimientos",
+        "operationId": "movimientos",
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MovimientoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/productos/stock-bajo": {
+      "get": {
+        "tags": [
+          "producto-controller"
+        ],
+        "summary": "Productos activos con stock menor o igual al minimo",
+        "operationId": "stockBajo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/empleados/{empleadoId}/ventas": {
+      "get": {
+        "tags": [
+          "empleado-controller"
+        ],
+        "summary": "Ventas por empleado; 404 si no existe, 200 [] si existe sin ventas",
+        "operationId": "ventas",
+        "parameters": [
+          {
+            "name": "empleadoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Detalle": {
+        "type": "object",
+        "properties": {
+          "productoId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32",
+            "example": 2,
+            "maximum": 1000000
+          },
+          "descuento": {
+            "type": "number",
+            "example": 0.0,
+            "minimum": 0.0
+          }
+        },
+        "required": [
+          "cantidad",
+          "descuento",
+          "productoId"
+        ]
+      },
+      "VentaRequest": {
+        "type": "object",
+        "properties": {
+          "numeroFactura": {
+            "type": "string",
+            "example": "FAC-001",
+            "maxLength": 20,
+            "minLength": 0,
+            "pattern": "[A-Za-z0-9-]+"
+          },
+          "clienteId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "empleadoId": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          },
+          "formaPago": {
+            "type": "string",
+            "example": "Efectivo",
+            "minLength": 1,
+            "pattern": "Efectivo|Tarjeta|Transferencia"
+          },
+          "detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Detalle"
+            },
+            "maxItems": 100,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "detalles",
+          "empleadoId",
+          "formaPago",
+          "numeroFactura"
+        ]
+      },
+      "VentaResponse": {
+        "type": "object",
+        "properties": {
+          "ventaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numeroFactura": {
+            "type": "string"
+          },
+          "clienteId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "empleadoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaVenta": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "iva": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "formaPago": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string"
+          }
+        }
+      },
+      "MovimientoResponse": {
+        "type": "object",
+        "properties": {
+          "movimientoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "productoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipoMovimiento": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockAnterior": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockNuevo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "referenciaTipo": {
+            "type": "string"
+          },
+          "referenciaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaMovimiento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "empleadoId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProductoResponse": {
+        "type": "object",
+        "properties": {
+          "productoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigoBarras": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precioVenta": {
+            "type": "number"
+          },
+          "stock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stockMinimo": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}

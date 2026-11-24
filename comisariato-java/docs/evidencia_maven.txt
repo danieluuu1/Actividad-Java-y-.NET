@@ -1,0 +1,8 @@
+JDK 21.0.13.1 | Maven 3.9.11 | release 17
+[INFO] Tests run: 34, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.276 s -- in edu.comisariato.api.ApiContractTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in edu.comisariato.api.SqlErrorTranslatorTest
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0 s -- in edu.comisariato.api.SqlServerIntegrationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.683 s -- in edu.comisariato.api.TransactionRetryTest
+[WARNING] Tests run: 44, Failures: 0, Errors: 0, Skipped: 2
+[INFO] BUILD SUCCESS
+[INFO] Total time:  22.706 s
